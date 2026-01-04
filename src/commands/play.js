@@ -90,6 +90,23 @@ module.exports = {
                 // Play the audio
                 voice.audioPlayer.play(resource);
 
+                // Auto-disconnect when song finishes
+                voice.audioPlayer.once('idle', () => {
+                    setTimeout(() => {
+                        const channel = voice.connection.joinConfig.channelId;
+                        const guild = interaction.client.guilds.cache.get(voice.connection.joinConfig.guildId);
+                        const voiceChannel = guild?.channels.cache.get(channel);
+
+                        // Check if anyone else is in the channel
+                        const members = voiceChannel?.members.filter(m => !m.user.bot);
+
+                        if (!members || members.size === 0) {
+                            console.log('[Auto-Disconnect] Song finished and channel empty, leaving...');
+                            voice.leave();
+                        }
+                    }, 3000); // Wait 3 seconds before disconnecting
+                });
+
                 await interaction.followUp(`🎵 Now playing: **${title}**`);
                 console.log(`[YouTube] Successfully playing: ${title}`);
 

@@ -147,4 +147,33 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
+// Auto-disconnect when alone in voice channel
+client.on('voiceStateUpdate', (oldState, newState) => {
+    // Only check if someone left a channel
+    if (!oldState.channel) return;
+
+    // Check if the bot is in this channel
+    const botMember = oldState.channel.guild.members.me;
+    if (!botMember?.voice?.channelId || botMember.voice.channelId !== oldState.channelId) return;
+
+    // Count non-bot members in the channel
+    const members = oldState.channel.members.filter(m => !m.user.bot);
+
+    if (members.size === 0) {
+        console.log(`[Auto-Disconnect] No humans left in ${oldState.channel.name}, leaving...`);
+
+        // Disconnect DisTube if it's playing
+        const queue = client.distube.getQueue(oldState.guild.id);
+        if (queue) {
+            client.distube.stop(oldState.guild.id);
+        }
+
+        // Leave the voice channel
+        const voice = client.distube.voices.get(oldState.guild.id);
+        if (voice) {
+            voice.leave();
+        }
+    }
+});
+
 client.login(process.env.DISCORD_TOKEN);
