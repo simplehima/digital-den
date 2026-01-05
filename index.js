@@ -53,11 +53,43 @@ if (fs.existsSync(eventsPath)) {
     }
 }
 
-client.once('ready', () => {
-    console.log(`Logged in as ${client.user.tag}!`);
-});
+const { REST, Routes } = require('discord.js');
 
-client.login(process.env.DISCORD_TOKEN);
+client.once('ready', async () => {
+    console.log(`Logged in as ${client.user.tag}!`);
+
+    const CLIENT_ID = client.user.id;
+    // Use the guild from .env if available for faster updates, otherwise global (can take 1h)
+    // or register for all guilds the bot is in (since this is a management bot)
+
+    const commandsData = [];
+    client.commands.forEach(cmd => commandsData.push(cmd.data.toJSON()));
+
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+
+    try {
+        console.log('Started refreshing application (/) commands.');
+
+        // If GUILD_ID is set in .env, register only for that guild (instant)
+        if (process.env.GUILD_ID) {
+            await rest.put(
+                Routes.applicationGuildCommands(CLIENT_ID, process.env.GUILD_ID),
+                { body: commandsData },
+            );
+            console.log(`Successfully registered commands for guild ${process.env.GUILD_ID}`);
+        } else {
+            // Otherwise, register global commands
+            await rest.put(
+                Routes.applicationCommands(CLIENT_ID),
+                { body: commandsData },
+            );
+            console.log('Successfully registered global application commands.');
+        }
+
+    } catch (error) {
+        console.error('Error registering commands:', error);
+    }
+});
 
 
 // --- WEB SERVER SETUP ---
