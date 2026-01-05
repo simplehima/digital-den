@@ -1,4 +1,24 @@
-require('dotenv').config();
+const path = require('path');
+const fs = require('fs');
+
+// Try multiple paths for .env-dis (same as index.js)
+const possiblePaths = [
+    path.join(__dirname, '../../.env-dis'),
+    path.join(__dirname, '../.env-dis')
+];
+
+let envFound = false;
+for (const envPath of possiblePaths) {
+    if (fs.existsSync(envPath)) {
+        require('dotenv').config({ path: envPath });
+        envFound = true;
+        break;
+    }
+}
+
+if (!envFound) {
+    require('dotenv').config();
+}
 const { REST, Routes } = require('discord.js');
 
 const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
