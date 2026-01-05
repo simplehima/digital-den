@@ -72,6 +72,10 @@ $recentLogs = count($logs);
         <div class="quick-actions">
             <h2>Quick Actions</h2>
             <div class="actions-grid">
+                <a href="control.php" class="action-btn">
+                    <span>🤖</span>
+                    Bot Control
+                </a>
                 <a href="logs.php" class="action-btn">
                     <span>📋</span>
                     View Logs
