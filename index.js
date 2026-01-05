@@ -1,3 +1,7 @@
+const path = require('path');
+// specific secure path: 2 levels up from typical public_html/discord-bots structure
+require('dotenv').config({ path: path.join(__dirname, '../../.env-dis') });
+// fallback to default .env just in case
 require('dotenv').config();
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const express = require('express');
