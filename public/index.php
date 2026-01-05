@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,17 +11,20 @@
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             background: linear-gradient(135deg, #0f0f13 0%, #1a1a2e 100%);
             color: #ffffff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
         }
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
         }
+
         header {
             background: rgba(0, 0, 0, 0.5);
             padding: 30px;
@@ -30,6 +34,7 @@
             border: 2px solid #8a2be2;
             box-shadow: 0 0 20px rgba(138, 43, 226, 0.3);
         }
+
         h1 {
             font-size: 3rem;
             background: linear-gradient(45deg, #8a2be2, #da70d6);
@@ -38,16 +43,37 @@
             background-clip: text;
             margin-bottom: 10px;
         }
+
         .subtitle {
             color: #b19cd9;
             font-size: 1.2rem;
+            margin-bottom: 20px;
         }
+
+        .login-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #8a2be2, #6a1bb2);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .login-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(138, 43, 226, 0.5);
+        }
+
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
+
         .card {
             background: rgba(30, 30, 40, 0.8);
             padding: 30px;
@@ -55,36 +81,44 @@
             border: 1px solid #333;
             transition: all 0.3s;
         }
+
         .card:hover {
             transform: translateY(-5px);
             border-color: #8a2be2;
             box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
         }
+
         .card h2 {
             color: #8a2be2;
             margin-bottom: 15px;
             font-size: 1.5rem;
         }
+
         .card ul {
             list-style: none;
             padding-left: 0;
         }
+
         .card li {
             padding: 8px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .card li:last-child {
             border-bottom: none;
         }
+
         .emoji {
             margin-right: 10px;
         }
+
         .commands {
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
             border-radius: 10px;
             border-left: 4px solid #8a2be2;
         }
+
         .command-code {
             background: rgba(0, 0, 0, 0.5);
             padding: 2px 8px;
@@ -92,6 +126,7 @@
             color: #da70d6;
             font-family: 'Courier New', monospace;
         }
+
         footer {
             text-align: center;
             padding: 20px;
@@ -100,11 +135,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
             <h1>🦊 The Digital Den</h1>
             <p class="subtitle">Your High-Tech Discord Sanctuary</p>
+            <a href="auth.php" class="login-btn">🔐 Admin Login</a>
         </header>
 
         <div class="features">
@@ -160,4 +197,5 @@
         </footer>
     </div>
 </body>
+
 </html>
