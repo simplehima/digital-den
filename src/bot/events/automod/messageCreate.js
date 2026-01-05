@@ -1,9 +1,15 @@
-const { EmbedBuilder } = require('discord.js');
+const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
-// Spam tracking
+// Configuration
+const BAD_WORDS = ['fuck', 'shit', 'bitch', 'asshole', 'nigger', 'faggot', 'retard'];
+const ALLOWED_LINKS = ['discord.gg', 'discord.com', 'youtube.com', 'youtu.be', 'github.com'];
+const SPAM_THRESHOLD = 5;
+const SPAM_WINDOW = 5000;
+const CAPS_THRESHOLD = 0.7; // 70% caps
+const MENTION_LIMIT = 5;
+
+// Tracking
 const spamMap = new Map();
-const SPAM_THRESHOLD = 5; // messages
-const SPAM_WINDOW = 5000; // 5 seconds
 
 module.exports = {
     name: 'messageCreate',
@@ -11,58 +17,107 @@ module.exports = {
         if (message.author.bot) return;
         if (!message.guild) return;
 
-        const userId = message.author.id;
-        const now = Date.now();
+        // Skip if user is admin/moderator
+        if (message.member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
 
-        // Check spam
-        if (!spamMap.has(userId)) {
-            spamMap.set(userId, []);
+        const userId = message.author.id;
+        const content = message.content.toLowerCase();
+        let violation = null;
+        let action = 'delete';
+
+        // 1. Bad Words Filter
+        for (const word of BAD_WORDS) {
+            if (content.includes(word)) {
+                violation = { type: 'Bad Word', detail: `Used prohibited word` };
+                action = 'warn';
+                break;
+            }
         }
 
-        const userMessages = spamMap.get(userId);
-        userMessages.push(now);
+        // 2. Link Filter (if no violation yet)
+        if (!violation) {
+            const linkRegex = /https?:\/\/[^\s]+/gi;
+            const links = content.match(linkRegex) || [];
 
-        // Clean old messages
-        const recentMessages = userMessages.filter(time => now - time < SPAM_WINDOW);
-        spamMap.set(userId, recentMessages);
+            for (const link of links) {
+                const isAllowed = ALLOWED_LINKS.some(allowed => link.includes(allowed));
+                if (!isAllowed) {
+                    violation = { type: 'Unauthorized Link', detail: 'Posted non-whitelisted link' };
+                    action = 'delete';
+                    break;
+                }
+            }
+        }
 
-        // Detect spam
-        if (recentMessages.length >= SPAM_THRESHOLD) {
+        // 3. Anti-Caps
+        if (!violation && content.length > 10) {
+            const caps = content.replace(/[^A-Z]/g, '').length;
+            const ratio = caps / content.length;
+            if (ratio > CAPS_THRESHOLD) {
+                violation = { type: 'Excessive Caps', detail: 'Too many capital letters' };
+                action = 'delete';
+            }
+        }
+
+        // 4. Anti-Mass Mention
+        if (!violation) {
+            const mentions = message.mentions.users.size + message.mentions.roles.size;
+            if (mentions > MENTION_LIMIT) {
+                violation = { type: 'Mass Mention', detail: `Mentioned ${mentions} users/roles` };
+                action = 'timeout';
+            }
+        }
+
+        // 5. Spam Detection
+        if (!violation) {
+            const now = Date.now();
+            if (!spamMap.has(userId)) spamMap.set(userId, []);
+
+            const times = spamMap.get(userId);
+            times.push(now);
+            const recent = times.filter(t => now - t < SPAM_WINDOW);
+            spamMap.set(userId, recent);
+
+            if (recent.length >= SPAM_THRESHOLD) {
+                violation = { type: 'Spam', detail: `Sent ${recent.length} messages in ${SPAM_WINDOW / 1000}s` };
+                action = 'timeout';
+                spamMap.delete(userId);
+            }
+        }
+
+        // Handle violation
+        if (violation) {
             try {
-                // Delete recent messages
-                const messages = await message.channel.messages.fetch({ limit: 10 });
-                const userSpam = messages.filter(m =>
-                    m.author.id === userId &&
-                    now - m.createdTimestamp < SPAM_WINDOW
-                );
+                await message.delete();
 
-                await message.channel.bulkDelete(userSpam);
+                if (action === 'timeout') {
+                    await message.member.timeout(5 * 60 * 1000, `AutoMod: ${violation.type}`);
+                }
 
-                // Timeout user
-                const member = await message.guild.members.fetch(userId);
-                await member.timeout(5 * 60 * 1000, 'Auto-moderation: Spam detected');
-
-                // Log
+                // Log to mod-log
                 const modLog = message.guild.channels.cache.find(ch => ch.name === 'moderation-logs');
                 if (modLog) {
                     const embed = new EmbedBuilder()
                         .setColor('#E74C3C')
-                        .setTitle('⚠️ Auto-Mod: Spam Detected')
+                        .setTitle(`⚠️ AutoMod: ${violation.type}`)
                         .addFields(
                             { name: 'User', value: `${message.author.tag} (${userId})`, inline: true },
                             { name: 'Channel', value: `<#${message.channel.id}>`, inline: true },
-                            { name: 'Action', value: '5 minute timeout', inline: false }
+                            { name: 'Action', value: action === 'timeout' ? '5 min timeout' : 'Message deleted', inline: true },
+                            { name: 'Details', value: violation.detail, inline: false }
                         )
                         .setTimestamp();
 
                     await modLog.send({ embeds: [embed] });
                 }
 
-                // Clear spam tracking
-                spamMap.delete(userId);
+                // DM user warning
+                try {
+                    await message.author.send(`⚠️ Your message in **${message.guild.name}** was removed.\n**Reason:** ${violation.type}\n**Details:** ${violation.detail}`);
+                } catch { } // Ignore if DMs are closed
 
             } catch (error) {
-                console.error('Auto-mod spam error:', error);
+                console.error('AutoMod error:', error);
             }
         }
     }
