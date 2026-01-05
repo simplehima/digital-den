@@ -23,9 +23,11 @@ if (!$user) {
     die('Failed to get user info');
 }
 
-// Check if user is admin
-if (!Discord::isAdmin($accessToken)) {
-    die('Access denied: You must be an admin of The Digital Den to access this dashboard');
+// Check if user is allowed admin
+$isAllowed = in_array($user['id'], ALLOWED_ADMINS) || Discord::isAdmin($accessToken);
+
+if (!$isAllowed) {
+    die('Access denied: You are not authorized to access this dashboard. Contact the owner to be added.');
 }
 
 // Create session

@@ -9,6 +9,13 @@ define('DISCORD_REDIRECT_URI', 'https://digital-den.ibrahim-azab.com/callback.ph
 define('GUILD_ID', '1457167466307260568');
 define('OWNER_ID', '900786385525555200');
 
+// Allowed Dashboard Admins (User IDs)
+define('ALLOWED_ADMINS', [
+    '900786385525555200',    // Owner
+    '1333200228056043684',   // Additional admin
+    '757988236806062322'     // Additional admin
+]);
+
 // Database
 define('DB_PATH', __DIR__ . '/data/bot.db');
 
