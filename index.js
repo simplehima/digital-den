@@ -104,6 +104,20 @@ const { REST, Routes } = require('discord.js');
 client.once('ready', async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
+    // Write status file for PHP control panel
+    const writeStatus = () => {
+        const statusData = {
+            status: 'online',
+            uptime: process.uptime(),
+            memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+            timestamp: Date.now(),
+            user: client.user.tag
+        };
+        fs.writeFileSync(path.join(__dirname, 'bot-status.json'), JSON.stringify(statusData));
+    };
+    writeStatus();
+    setInterval(writeStatus, 30000); // Update every 30 seconds
+
     const CLIENT_ID = client.user.id;
     // Use the guild from .env if available for faster updates, otherwise global (can take 1h)
     // or register for all guilds the bot is in (since this is a management bot)

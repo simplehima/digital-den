@@ -8,26 +8,23 @@ $message = '';
 $botStatus = 'offline';
 $uptime = 0;
 $memory = 0;
-$cpu = 0;
+$botUser = '';
 
-// Get bot status using simple grep
-exec('pm2 describe digital-den 2>&1 | grep -i "status" | grep -i "online"', $statusCheck, $statusCode);
-
-if ($statusCode === 0 && !empty($statusCheck)) {
-    $botStatus = 'online';
+// Read status from file (written by the bot)
+$statusFile = __DIR__ . '/bot-status.json';
+if (file_exists($statusFile)) {
+    $statusData = json_decode(file_get_contents($statusFile), true);
     
-    // Get detailed info
-    exec('pm2 describe digital-den 2>&1', $fullOutput);
-    $fullStr = implode("\n", $fullOutput);
-    
-    // Try to extract uptime (in seconds since start)
-    if (preg_match('/uptime.*?(\d+)/', $fullStr, $matches)) {
-        $uptime = time() - (int)$matches[1];
-    }
-    
-    // Try to extract memory
-    if (preg_match('/memory.*?(\d+)/', $fullStr, $matches)) {
-        $memory = round((int)$matches[1] / 1024 / 1024, 2);
+    // Check if status is recent (within 60 seconds)
+    if ($statusData && isset($statusData['timestamp'])) {
+        $age = (time() * 1000 - $statusData['timestamp']) / 1000;
+        
+        if ($age < 60) {
+            $botStatus = 'online';
+            $uptime = $statusData['uptime'] ?? 0;
+            $memory = $statusData['memory'] ?? 0;
+            $botUser = $statusData['user'] ?? '';
+        }
     }
 }
 
