@@ -16,7 +16,9 @@ $recentLogs = count($logs);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - The Digital Den</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/favicon.png">
     <link rel="stylesheet" href="assets/dashboard.css">
 </head>
 
