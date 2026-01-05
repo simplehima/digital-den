@@ -1,0 +1,16 @@
+<nav class="dashboard-nav">
+    <div class="nav-brand">
+        <span>🦊 The Digital Den</span>
+    </div>
+    <div class="nav-links">
+        <a href="dashboard.php">Dashboard</a>
+        <a href="logs.php">Logs</a>
+        <a href="settings.php">Settings</a>
+    </div>
+    <div class="nav-user">
+        <span>
+            <?php echo htmlspecialchars($user['username'] ?? 'Admin'); ?>
+        </span>
+        <a href="logout.php" class="logout-btn">Logout</a>
+    </div>
+</nav>
