@@ -1,4 +1,4 @@
-const { AttachmentBuilder } = require('discord.js');
+const { AttachmentBuilder, EmbedBuilder } = require('discord.js');
 const path = require('path');
 const fs = require('fs');
 
@@ -8,6 +8,27 @@ module.exports = {
         const welcomeChannelName = 'welcome';
         const channel = member.guild.channels.cache.find(ch => ch.name === welcomeChannelName);
 
+        // Welcome GIF URL
+        const WELCOME_GIF = 'https://media.giphy.com/media/Cmr1OMJ2FN0B2/giphy.gif';
+
+        // Send DM to new member
+        try {
+            const dmEmbed = new EmbedBuilder()
+                .setColor('#8a2be2')
+                .setTitle(`🦊 Welcome to ${member.guild.name}!`)
+                .setDescription(`Hey **${member.user.username}**! 👋\n\nWe're excited to have you join our community!\n\n📜 Check out <#rules> for our server rules\n💬 Introduce yourself in <#general-chat>\n🎮 Have fun and enjoy your stay!`)
+                .setImage(WELCOME_GIF)
+                .setThumbnail(member.guild.iconURL({ size: 128 }))
+                .setFooter({ text: `You are member #${member.guild.memberCount}` })
+                .setTimestamp();
+
+            await member.send({ embeds: [dmEmbed] });
+            console.log(`Sent DM welcome to ${member.user.tag}`);
+        } catch (dmError) {
+            console.log(`Could not DM ${member.user.tag} - DMs may be disabled`);
+        }
+
+        // Send welcome in channel
         if (!channel) return;
 
         try {
@@ -69,3 +90,4 @@ module.exports = {
         }
     }
 };
+
