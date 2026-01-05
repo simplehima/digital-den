@@ -113,6 +113,15 @@ client.once('ready', async () => {
     }
 });
 
+client.on('error', (error) => {
+    console.error('Discord Client Error:', error);
+});
+
+client.login(process.env.DISCORD_TOKEN).catch((err) => {
+    console.error('FAILED TO LOGIN:', err);
+    process.exit(1);
+});
+
 
 // --- WEB SERVER SETUP ---
 const app = express();
