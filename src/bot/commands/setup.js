@@ -149,6 +149,14 @@ module.exports = {
                         { name: '😂memes', type: ChannelType.GuildText, topic: 'Post your best memes' },
                         { name: '🎧chill-voice', type: ChannelType.GuildVoice }
                     ]
+                },
+                {
+                    name: '📊 LOGS',
+                    channels: [
+                        { name: '📋message-logs', type: ChannelType.GuildText, topic: 'Message deletion and edit logs' },
+                        { name: '🔊voice-logs', type: ChannelType.GuildText, topic: 'Voice channel activity logs' },
+                        { name: '🛡️moderation-logs', type: ChannelType.GuildText, topic: 'Moderation action logs' }
+                    ]
                 }
             ];
 
