@@ -12,11 +12,11 @@ module.exports = {
             .addFields(
                 {
                     name: '📋 General Commands',
-                    value: '`/help` - Show this message\n`/rules` - View server rules\n`/serverinfo` - Server information'
+                    value: '`/help` - Show this message\n`/rules` - View server rules\n`/serverinfo` - Server information\n`/userinfo` - User information\n`/avatar` - View avatar\n`/ping` - Check bot latency'
                 },
                 {
                     name: '🛡️ Admin Commands',
-                    value: '`/setup` - Set up server roles and channels\n`/announce` - Post an announcement'
+                    value: '`/setup` - Set up server (Owner only)\n`/announce` - Post an announcement'
                 }
             )
             .setFooter({ text: '🦊 The Digital Den' })

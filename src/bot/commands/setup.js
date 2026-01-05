@@ -7,15 +7,58 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     async execute(interaction) {
         const guild = interaction.guild;
-        await interaction.reply({ content: '🦊 Starting The Digital Den setup... This may take a moment.', ephemeral: true });
+
+        // Owner-only check
+        if (interaction.user.id !== '900786385525555200') {
+            return await interaction.reply({
+                content: '❌ Only the server owner can run this command!',
+                ephemeral: true
+            });
+        }
+
+        await interaction.reply({ content: '🦊 Starting The Digital Den setup... This will delete old roles/channels and recreate them.', ephemeral: true });
 
         try {
-            // --- ROLES ---
+            // --- DELETE OLD ROLES (except @everyone and managed roles) ---
+            const rolesToDelete = guild.roles.cache.filter(role =>
+                role.name !== '@everyone' &&
+                !role.managed &&
+                role.position < guild.members.me.roles.highest.position // Only delete roles below bot's highest role
+            );
+
+            for (const [id, role] of rolesToDelete) {
+                try {
+                    await role.delete('Digital Den Setup - Cleanup');
+                    console.log(`🗑️ Deleted role: ${role.name}`);
+                } catch (err) {
+                    console.log(`⚠️ Could not delete role: ${role.name}`);
+                }
+            }
+
+            // --- DELETE OLD CHANNELS ---
+            const channelsToDelete = guild.channels.cache.filter(channel =>
+                channel.type !== ChannelType.GuildCategory ||
+                guild.channels.cache.some(c => c.parentId === channel.id)
+            );
+
+            for (const [id, channel] of channelsToDelete) {
+                try {
+                    await channel.delete('Digital Den Setup - Cleanup');
+                    console.log(`🗑️ Deleted channel: ${channel.name}`);
+                } catch (err) {
+                    console.log(`⚠️ Could not delete channel: ${channel.name}`);
+                }
+            }
+
+            await interaction.editReply({ content: '✅ Cleanup complete. Creating new structure...' });
+
+            // --- CREATE ROLES (WITH HOISTING) ---
             const rolesConfig = [
                 {
                     name: '👑 Admin',
                     color: '#FF0000',
-                    permissions: [PermissionFlagsBits.Administrator]
+                    permissions: [PermissionFlagsBits.Administrator],
+                    hoist: true // Display separately
                 },
                 {
                     name: '🛡️ Moderator',
@@ -24,11 +67,12 @@ module.exports = {
                         PermissionFlagsBits.KickMembers,
                         PermissionFlagsBits.BanMembers,
                         PermissionFlagsBits.ManageMessages,
-                        PermissionFlagsBits.ModerateMembers, // Timeout
+                        PermissionFlagsBits.ModerateMembers,
                         PermissionFlagsBits.MoveMembers,
                         PermissionFlagsBits.MuteMembers,
                         PermissionFlagsBits.DeafenMembers
-                    ]
+                    ],
+                    hoist: true
                 },
                 {
                     name: '🎙️ Voice Manager',
@@ -37,37 +81,35 @@ module.exports = {
                         PermissionFlagsBits.MoveMembers,
                         PermissionFlagsBits.MuteMembers,
                         PermissionFlagsBits.DeafenMembers
-                    ]
+                    ],
+                    hoist: true
                 },
                 {
                     name: '🎮 Gamer',
-                    color: '#2ECC71'
+                    color: '#2ECC71',
+                    hoist: true
                 },
                 {
                     name: '🎨 Artist',
-                    color: '#E91E63'
+                    color: '#E91E63',
+                    hoist: true
                 },
                 {
                     name: '👤 Member',
-                    color: '#95A5A6'
+                    color: '#95A5A6',
+                    hoist: false
                 }
             ];
 
-            const createdRoles = {};
             for (const r of rolesConfig) {
-                let role = guild.roles.cache.find(role => role.name === r.name);
-                if (!role) {
-                    role = await guild.roles.create({
-                        name: r.name,
-                        color: r.color,
-                        permissions: r.permissions || [],
-                        reason: 'Digital Den Setup'
-                    });
-                    console.log(`✓ Created role: ${r.name}`);
-                } else {
-                    console.log(`⚠️ Role already exists: ${r.name}`);
-                }
-                createdRoles[r.name] = role;
+                const role = await guild.roles.create({
+                    name: r.name,
+                    color: r.color,
+                    permissions: r.permissions || [],
+                    hoist: r.hoist,
+                    reason: 'Digital Den Setup'
+                });
+                console.log(`✓ Created role: ${r.name}`);
             }
 
             // --- CATEGORIES & CHANNELS ---
@@ -112,32 +154,24 @@ module.exports = {
             ];
 
             for (const cat of categories) {
-                let category = guild.channels.cache.find(c => c.name === cat.name && c.type === ChannelType.GuildCategory);
-                if (!category) {
-                    category = await guild.channels.create({
-                        name: cat.name,
-                        type: ChannelType.GuildCategory
-                    });
-                    console.log(`✓ Created category: ${cat.name}`);
-                }
+                const category = await guild.channels.create({
+                    name: cat.name,
+                    type: ChannelType.GuildCategory
+                });
+                console.log(`✓ Created category: ${cat.name}`);
 
                 for (const chan of cat.channels) {
-                    const existing = guild.channels.cache.find(c => c.name === chan.name && c.parentId === category.id);
-                    if (!existing) {
-                        await guild.channels.create({
-                            name: chan.name,
-                            type: chan.type,
-                            parent: category.id,
-                            topic: chan.topic || ''
-                        });
-                        console.log(`✓ Created channel: ${chan.name}`);
-                    } else {
-                        console.log(`⚠️ Channel already exists: ${chan.name}`);
-                    }
+                    await guild.channels.create({
+                        name: chan.name,
+                        type: chan.type,
+                        parent: category.id,
+                        topic: chan.topic || ''
+                    });
+                    console.log(`✓ Created channel: ${chan.name}`);
                 }
             }
 
-            await interaction.editReply({ content: '✅ Setup complete! Created roles and channels.' });
+            await interaction.editReply({ content: '✅ Setup complete! The Digital Den is ready. 🦊' });
 
         } catch (error) {
             console.error(error);
