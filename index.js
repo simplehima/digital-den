@@ -1,11 +1,26 @@
 const path = require('path');
-const envPath = path.join(__dirname, '../../.env-dis');
-console.log('Loading .env from:', envPath);
-const result = require('dotenv').config({ path: envPath });
-if (result.error) console.log('Dotenv error:', result.error.message);
+const fs = require('fs');
 
-// fallback
-require('dotenv').config();
+// Try multiple paths for .env-dis
+const possiblePaths = [
+    path.join(__dirname, '../../.env-dis'), // For public_html/discord-bots
+    path.join(__dirname, '../.env-dis')     // For public_html root
+];
+
+let envFound = false;
+for (const envPath of possiblePaths) {
+    if (fs.existsSync(envPath)) {
+        console.log('Loading .env from:', envPath);
+        require('dotenv').config({ path: envPath });
+        envFound = true;
+        break;
+    }
+}
+
+if (!envFound) {
+    console.log('Could not find .env-dis in expected paths. Trying default .env');
+    require('dotenv').config();
+}
 
 console.log('Token status:', process.env.DISCORD_TOKEN ? 'Token Found' : 'Token Missing');
 console.log('App ID:', process.env.CLIENT_ID || 'Missing');
