@@ -153,9 +153,11 @@ module.exports = {
                 {
                     name: '📊 LOGS',
                     channels: [
-                        { name: '📋message-logs', type: ChannelType.GuildText, topic: 'Message deletion and edit logs' },
-                        { name: '🔊voice-logs', type: ChannelType.GuildText, topic: 'Voice channel activity logs' },
-                        { name: '🛡️moderation-logs', type: ChannelType.GuildText, topic: 'Moderation action logs' }
+                        { name: 'message-logs', type: ChannelType.GuildText, topic: '📝 Message deletion and edit logs' },
+                        { name: 'voice-logs', type: ChannelType.GuildText, topic: '🔊 Voice channel activity logs' },
+                        { name: 'member-logs', type: ChannelType.GuildText, topic: '👥 Member join, leave, role changes' },
+                        { name: 'server-logs', type: ChannelType.GuildText, topic: '⚙️ Role and channel changes' },
+                        { name: 'moderation-logs', type: ChannelType.GuildText, topic: '🛡️ Moderation action logs' }
                     ]
                 }
             ];
