@@ -11,6 +11,17 @@ module.exports = {
         // Welcome GIF URL
         const WELCOME_GIF = 'https://media.giphy.com/media/Cmr1OMJ2FN0B2/giphy.gif';
 
+        // Auto-assign Member role
+        try {
+            const memberRole = member.guild.roles.cache.find(role => role.name === '👤 Member');
+            if (memberRole) {
+                await member.roles.add(memberRole);
+                console.log(`Assigned Member role to ${member.user.tag}`);
+            }
+        } catch (roleError) {
+            console.error('Failed to assign Member role:', roleError);
+        }
+
         // Send DM to new member
         try {
             const dmEmbed = new EmbedBuilder()
