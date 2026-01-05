@@ -4,6 +4,7 @@
     </div>
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
+        <a href="announcement.php">Announce</a>
         <a href="control.php">Bot Control</a>
         <a href="automod.php">AutoMod</a>
         <a href="logs.php">Logs</a>
