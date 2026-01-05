@@ -16,7 +16,8 @@ module.exports = {
             });
         }
 
-        await interaction.reply({ content: '🦊 Starting The Digital Den setup... This will delete old roles/channels and recreate them.', ephemeral: true });
+        // Defer reply for long-running operation
+        await interaction.deferReply({ ephemeral: true });
 
         try {
             // --- DELETE OLD ROLES (except @everyone and managed roles) ---
@@ -50,19 +51,17 @@ module.exports = {
                 }
             }
 
-            await interaction.editReply({ content: '✅ Cleanup complete. Creating new structure...' });
-
             // --- CREATE ROLES (WITH HOISTING) ---
             const rolesConfig = [
                 {
                     name: '👑 Admin',
-                    color: '#FF0000',
+                    colors: 0xFF0000,
                     permissions: [PermissionFlagsBits.Administrator],
                     hoist: true // Display separately
                 },
                 {
                     name: '🛡️ Moderator',
-                    color: '#3498DB',
+                    colors: 0x3498DB,
                     permissions: [
                         PermissionFlagsBits.KickMembers,
                         PermissionFlagsBits.BanMembers,
@@ -76,7 +75,7 @@ module.exports = {
                 },
                 {
                     name: '🎙️ Voice Manager',
-                    color: '#9B59B6',
+                    colors: 0x9B59B6,
                     permissions: [
                         PermissionFlagsBits.MoveMembers,
                         PermissionFlagsBits.MuteMembers,
@@ -86,17 +85,17 @@ module.exports = {
                 },
                 {
                     name: '🎮 Gamer',
-                    color: '#2ECC71',
+                    colors: 0x2ECC71,
                     hoist: true
                 },
                 {
                     name: '🎨 Artist',
-                    color: '#E91E63',
+                    colors: 0xE91E63,
                     hoist: true
                 },
                 {
                     name: '👤 Member',
-                    color: '#95A5A6',
+                    colors: 0x95A5A6,
                     hoist: false
                 }
             ];
@@ -104,7 +103,7 @@ module.exports = {
             for (const r of rolesConfig) {
                 const role = await guild.roles.create({
                     name: r.name,
-                    color: r.color,
+                    color: r.colors,
                     permissions: r.permissions || [],
                     hoist: r.hoist,
                     reason: 'Digital Den Setup'
