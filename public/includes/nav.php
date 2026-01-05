@@ -1,7 +1,6 @@
 <nav class="dashboard-nav">
     <div class="nav-brand">
-        <img src="assets/logo.png" alt="The Digital Den" class="nav-logo">
-        <span>The Digital Den</span>
+        <span>🦊 The Digital Den</span>
     </div>
     <div class="nav-links">
         <a href="dashboard.php">Dashboard</a>
