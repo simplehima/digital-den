@@ -31,7 +31,7 @@ const session = require('express-session');
 const passport = require('passport');
 const DiscordStrategy = require('passport-discord').Strategy;
 
-const fs = require('fs');
+
 
 // --- BOT SETUP ---
 const client = new Client({
