@@ -10,27 +10,24 @@ $uptime = 0;
 $memory = 0;
 $cpu = 0;
 
-// Get bot status using pm2 describe
-exec('pm2 describe digital-den 2>&1', $output, $returnCode);
-$output_str = implode("\n", $output);
+// Get bot status using simple grep
+exec('pm2 describe digital-den 2>&1 | grep -i "status" | grep -i "online"', $statusCheck, $statusCode);
 
-if ($returnCode === 0 && strpos($output_str, 'online') !== false) {
+if ($statusCode === 0 && !empty($statusCheck)) {
     $botStatus = 'online';
     
-    // Extract uptime and memory from output
-    foreach ($output as $line) {
-        if (strpos($line, 'uptime') !== false) {
-            preg_match('/(\d+)s/', $line, $matches);
-            if (isset($matches[1])) {
-                $uptime = time() - (int)$matches[1];
-            }
-        }
-        if (strpos($line, 'memory') !== false) {
-            preg_match('/(\d+)/', $line, $matches);
-            if (isset($matches[1])) {
-                $memory = round((int)$matches[1] / 1024 / 1024, 2);
-            }
-        }
+    // Get detailed info
+    exec('pm2 describe digital-den 2>&1', $fullOutput);
+    $fullStr = implode("\n", $fullOutput);
+    
+    // Try to extract uptime (in seconds since start)
+    if (preg_match('/uptime.*?(\d+)/', $fullStr, $matches)) {
+        $uptime = time() - (int)$matches[1];
+    }
+    
+    // Try to extract memory
+    if (preg_match('/memory.*?(\d+)/', $fullStr, $matches)) {
+        $memory = round((int)$matches[1] / 1024 / 1024, 2);
     }
 }
 
