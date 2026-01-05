@@ -52,7 +52,21 @@ module.exports = {
                         name: chan.name,
                         type: ChannelType.GuildText,
                         parent: logsCategory.id,
-                        topic: chan.topic
+                        topic: chan.topic,
+                        permissionOverwrites: [
+                            {
+                                id: guild.id, // @everyone
+                                deny: ['ViewChannel'] // Hide from regular members
+                            },
+                            {
+                                id: guild.roles.cache.find(r => r.name === '👑 Admin')?.id || guild.ownerId,
+                                allow: ['ViewChannel', 'ReadMessageHistory']
+                            },
+                            {
+                                id: guild.roles.cache.find(r => r.name === '🛡️ Moderator')?.id || guild.ownerId,
+                                allow: ['ViewChannel', 'ReadMessageHistory']
+                            }
+                        ]
                     });
                     console.log(`✓ Created channel: ${chan.name}`);
                     created++;
