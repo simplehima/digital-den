@@ -5,19 +5,31 @@ $user = requireAuth();
 
 // Handle bot control actions
 $message = '';
-$botStatus = 'Unknown';
+$botStatus = 'offline';
+$uptime = 0;
+$memory = 0;
+$cpu = 0;
 
-// Get bot status
-exec('pm2 jlist 2>&1', $output, $returnCode);
-if ($returnCode === 0) {
-    $processes = json_decode(implode('', $output), true);
-    foreach ($processes as $proc) {
-        if ($proc['name'] === 'digital-den') {
-            $botStatus = $proc['pm2_env']['status'];
-            $uptime = $proc['pm2_env']['pm_uptime'];
-            $memory = round($proc['monit']['memory'] / 1024 / 1024, 2);
-            $cpu = $proc['monit']['cpu'];
-            break;
+// Get bot status using pm2 describe
+exec('pm2 describe digital-den 2>&1', $output, $returnCode);
+$output_str = implode("\n", $output);
+
+if ($returnCode === 0 && strpos($output_str, 'online') !== false) {
+    $botStatus = 'online';
+    
+    // Extract uptime and memory from output
+    foreach ($output as $line) {
+        if (strpos($line, 'uptime') !== false) {
+            preg_match('/(\d+)s/', $line, $matches);
+            if (isset($matches[1])) {
+                $uptime = time() - (int)$matches[1];
+            }
+        }
+        if (strpos($line, 'memory') !== false) {
+            preg_match('/(\d+)/', $line, $matches);
+            if (isset($matches[1])) {
+                $memory = round((int)$matches[1] / 1024 / 1024, 2);
+            }
         }
     }
 }
