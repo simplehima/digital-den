@@ -14,11 +14,11 @@ $botUser = '';
 $statusFile = __DIR__ . '/bot-status.json';
 if (file_exists($statusFile)) {
     $statusData = json_decode(file_get_contents($statusFile), true);
-    
+
     // Check if status is recent (within 60 seconds)
     if ($statusData && isset($statusData['timestamp'])) {
         $age = (time() * 1000 - $statusData['timestamp']) / 1000;
-        
+
         if ($age < 60) {
             $botStatus = 'online';
             $uptime = $statusData['uptime'] ?? 0;
@@ -119,18 +119,15 @@ if (isset($_GET['msg'])) {
         </div>
 
         <div class="control-buttons card">
-            <h2>Actions</h2>
-            <form method="POST" style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button type="submit" name="action" value="start" class="btn-success">
-                    ▶️ Start Bot
-                </button>
-                <button type="submit" name="action" value="restart" class="btn-primary">
-                    🔄 Restart Bot
-                </button>
-                <button type="submit" name="action" value="stop" class="btn-danger">
-                    ⏹️ Stop Bot
-                </button>
-            </form>
+            <h2>📋 Bot Control (SSH Required)</h2>
+            <p style="color: #b19cd9; margin-bottom: 1rem;">Due to shared hosting limitations, bot control must be done
+                via SSH:</p>
+            <div class="ssh-commands">
+                <code>pm2 restart digital-den</code> - Restart bot<br>
+                <code>pm2 stop digital-den</code> - Stop bot<br>
+                <code>pm2 start index.js --name digital-den</code> - Start bot<br>
+                <code>pm2 logs digital-den</code> - View logs
+            </div>
         </div>
 
         <div class="quick-links card">
@@ -203,6 +200,21 @@ if (isset($_GET['msg'])) {
         .status-badge.stopped {
             background: rgba(231, 76, 60, 0.2);
             color: #e74c3c;
+        }
+
+        .ssh-commands {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: monospace;
+            line-height: 2;
+        }
+
+        .ssh-commands code {
+            background: rgba(138, 43, 226, 0.3);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            color: #da70d6;
         }
 
         .btn-success {
