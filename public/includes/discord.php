@@ -21,7 +21,7 @@ class Discord
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query([
             'client_id' => DISCORD_CLIENT_ID,
-            'client_secret' => defined('DISCORD_CLIENT_SECRET_LOADED') ? DISCORD_CLIENT_SECRET_LOADED : DISCORD_CLIENT_SECRET,
+            'client_secret' => DISCORD_CLIENT_SECRET,
             'grant_type' => 'authorization_code',
             'code' => $code,
             'redirect_uri' => DISCORD_REDIRECT_URI
