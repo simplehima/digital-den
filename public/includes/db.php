@@ -59,6 +59,48 @@ class Database
                 updated_at INTEGER DEFAULT (strftime('%s', 'now'))
             )
         ");
+
+        // Moderation cases table
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS moderation_cases (
+                case_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id TEXT,
+                user_id TEXT,
+                moderator_id TEXT,
+                action TEXT,
+                reason TEXT,
+                timestamp INTEGER DEFAULT (strftime('%s', 'now')),
+                duration INTEGER
+            )
+        ");
+
+        // Automod config table
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS automod_config (
+                guild_id TEXT PRIMARY KEY,
+                anti_spam INTEGER DEFAULT 1,
+                anti_badwords INTEGER DEFAULT 1,
+                anti_links INTEGER DEFAULT 1,
+                anti_caps INTEGER DEFAULT 1,
+                anti_mentions INTEGER DEFAULT 1,
+                badwords_list TEXT,
+                whitelist_links TEXT
+            )
+        ");
+
+        // Welcome config table
+        $this->db->exec("
+            CREATE TABLE IF NOT EXISTS welcome_config (
+                guild_id TEXT PRIMARY KEY,
+                welcome_enabled INTEGER DEFAULT 1,
+                goodbye_enabled INTEGER DEFAULT 1,
+                welcome_channel_id TEXT,
+                goodbye_channel_id TEXT,
+                welcome_message TEXT,
+                goodbye_message TEXT,
+                autoroles TEXT
+            )
+        ");
     }
 
     public function query($sql, $params = [])
