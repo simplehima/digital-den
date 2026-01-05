@@ -1,9 +1,9 @@
 <?php
 // Discord OAuth Configuration
 define('DISCORD_CLIENT_ID', '1456784848143257744');
-define('DISCORD_CLIENT_SECRET', ''); // Get from .env-dis
+// CLIENT_SECRET loaded from .env-dis below
 define('DISCORD_REDIRECT_URI', 'https://digital-den.ibrahim-azab.com/callback.php');
-define('DISCORD_BOT_TOKEN', ''); // Get from .env-dis
+// DISCORD_BOT_TOKEN loaded from .env-dis below
 
 // Guild Configuration
 define('GUILD_ID', '1457167466307260568');
