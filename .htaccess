@@ -1,5 +1,17 @@
-# Proxy requests to Node.js app running on port 3000
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ http://127.0.0.1:3000/$1 [P,L]
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Don't rewrite files or directories
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # Proxy all requests to localhost:3000
+    RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
+</IfModule>
+
+# Set proper headers for proxying
+<IfModule mod_headers.c>
+    RequestHeader set X-Forwarded-Proto "https"
+    RequestHeader set X-Forwarded-For %{REMOTE_ADDR}e
+</IfModule>
+
