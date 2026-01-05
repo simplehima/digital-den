@@ -1,8 +1,15 @@
 const path = require('path');
-// specific secure path: 2 levels up from typical public_html/discord-bots structure
-require('dotenv').config({ path: path.join(__dirname, '../../.env-dis') });
-// fallback to default .env just in case
+const envPath = path.join(__dirname, '../../.env-dis');
+console.log('Loading .env from:', envPath);
+const result = require('dotenv').config({ path: envPath });
+if (result.error) console.log('Dotenv error:', result.error.message);
+
+// fallback
 require('dotenv').config();
+
+console.log('Token status:', process.env.DISCORD_TOKEN ? 'Token Found' : 'Token Missing');
+console.log('App ID:', process.env.CLIENT_ID || 'Missing');
+
 const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const express = require('express');
 const session = require('express-session');
