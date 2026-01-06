@@ -204,6 +204,14 @@ app.get('/', (req, res) => {
     res.render('index', { user: req.user });
 });
 
+app.get('/terms', (req, res) => {
+    res.render('terms', { user: req.user });
+});
+
+app.get('/privacy', (req, res) => {
+    res.render('privacy', { user: req.user });
+});
+
 app.listen(PORT, () => {
     console.log(`Web server running on port ${PORT}`);
 });

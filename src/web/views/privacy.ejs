@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - The Digital Den</title>
+    <style>
+        body {
+            background-color: #0f0f13;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            background-image: url('/background.png');
+            background-size: cover;
+            background-attachment: fixed;
+            background-blend-mode: overlay;
+        }
+
+        .container {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px;
+            border-radius: 15px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 0 20px #8a2be2;
+            line-height: 1.6;
+        }
+
+        h1 {
+            color: #b19cd9;
+            border-bottom: 2px solid #8a2be2;
+            padding-bottom: 10px;
+        }
+
+        h2 {
+            color: #b19cd9;
+            margin-top: 30px;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        a {
+            color: #5865F2;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 30px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Privacy Policy</h1>
+        <p>Last Updated: <%= new Date().toLocaleDateString() %>
+        </p>
+
+        <section>
+            <h2>1. Information We Collect</h2>
+            <p>We collect minimal data to provide our services:</p>
+            <ul>
+                <li>Discord User IDs and Usernames</li>
+                <li>Guild (Server) IDs</li>
+                <li>Public metadata provided via the Discord API</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>2. How We Use Data</h2>
+            <p>We use this data strictly for functionality, such as identifying you on the dashboard and managing your
+                server settings. We do not sell or share your data with third parties.</p>
+        </section>
+
+        <section>
+            <h2>3. Data Retention</h2>
+            <p>Data is stored as long as you use the bot. You can request data removal by contacting the bot
+                administrator or removing the bot from your server.</p>
+        </section>
+
+        <section>
+            <h2>4. Security</h2>
+            <p>We implement industry-standard security measures to protect your information, but no method of
+                transmission over the internet is 100% secure.</p>
+        </section>
+
+        <a href="/" class="back-link">← Back to Home</a>
+    </div>
+</body>
+
+</html>
