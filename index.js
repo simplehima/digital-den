@@ -132,6 +132,21 @@ client.once('ready', async () => {
     try {
         console.log('Started refreshing application (/) commands.');
 
+        // Set Rich Presence
+        client.user.setPresence({
+            activities: [{
+                name: 'The Digital Den | /help',
+                type: 3, // WATCHING
+                assets: {
+                    large_image: 'logo_large',
+                    large_text: 'Digital Sanctuary',
+                    small_image: 'icon_small',
+                    small_text: 'Status: Active'
+                }
+            }],
+            status: 'online'
+        });
+
         // If GUILD_ID is set in .env, register only for that guild (instant)
         if (process.env.GUILD_ID) {
             await rest.put(
