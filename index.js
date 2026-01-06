@@ -111,9 +111,11 @@ client.once('ready', async () => {
             uptime: process.uptime(),
             memory: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
             timestamp: Date.now(),
+            heartbeat: new Date().toISOString(),
             user: client.user.tag
         };
         fs.writeFileSync(path.join(__dirname, 'bot-status.json'), JSON.stringify(statusData));
+        console.log(`[HEARTBEAT] Bot is alive at ${statusData.heartbeat}`);
     };
     writeStatus();
     setInterval(writeStatus, 30000); // Update every 30 seconds
@@ -204,6 +206,18 @@ app.get('/', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Web server running on port ${PORT}`);
+});
+
+// --- ERROR HANDLING & PURSUIT OF 24/7 ---
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    // Log to file if needed
+});
+
+process.on('uncaughtException', (err, origin) => {
+    console.error('Uncaught Exception:', err, 'at:', origin);
+    // Optional: Log to file and then exit safely if critical
+    // process.exit(1);
 });
 
 module.exports = { client }; // Export client for use in other files if needed
