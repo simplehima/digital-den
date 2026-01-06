@@ -1,6 +1,25 @@
 const path = require('path');
 const fs = require('fs');
 
+// Ensure logs directory exists
+const logsDir = path.join(__dirname, 'logs');
+if (!fs.existsSync(logsDir)) {
+    fs.mkdirSync(logsDir);
+}
+
+// Logging utility
+function logToFile(level, message, error = null) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] [${level}] ${message}${error ? '\n' + error.stack : ''}\n`;
+
+    // Console output
+    console.log(logMessage.trim());
+
+    // File output
+    const logFile = level === 'ERROR' ? 'logs/errors.log' : 'logs/bot.log';
+    fs.appendFileSync(path.join(__dirname, logFile), logMessage);
+}
+
 // Try multiple paths for .env-dis
 const possiblePaths = [
     path.join(__dirname, '../../.env-dis'), // For public_html/discord-bots
@@ -102,7 +121,9 @@ client.on('interactionCreate', async (interaction) => {
 const { REST, Routes } = require('discord.js');
 
 client.once('ready', async () => {
-    console.log(`Logged in as ${client.user.tag}!`);
+    const loginMsg = `Bot logged in as ${client.user.tag}`;
+    console.log(loginMsg);
+    logToFile('INFO', loginMsg);
 
     // Write status file for PHP control panel
     const writeStatus = () => {
@@ -114,8 +135,8 @@ client.once('ready', async () => {
             heartbeat: new Date().toISOString(),
             user: client.user.tag
         };
-        fs.writeFileSync(path.join(__dirname, 'bot-status.json'), JSON.stringify(statusData));
-        console.log(`[HEARTBEAT] Bot is alive at ${statusData.heartbeat}`);
+        fs.writeFileSync(path.join(__dirname, 'bot-status.json'), JSON.stringify(statusData, null, 2));
+        // Heartbeat console log (don't spam the log file)
     };
     writeStatus();
     setInterval(writeStatus, 30000); // Update every 30 seconds
@@ -169,11 +190,11 @@ client.once('ready', async () => {
 });
 
 client.on('error', (error) => {
-    console.error('Discord Client Error:', error);
+    logToFile('ERROR', 'Discord Client Error', error);
 });
 
 client.login(process.env.DISCORD_TOKEN).catch((err) => {
-    console.error('FAILED TO LOGIN:', err);
+    logToFile('ERROR', 'FAILED TO LOGIN - Check your DISCORD_TOKEN', err);
     process.exit(1);
 });
 
@@ -233,14 +254,28 @@ app.listen(PORT, () => {
 
 // --- ERROR HANDLING & PURSUIT OF 24/7 ---
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-    // Log to file if needed
+    logToFile('ERROR', `Unhandled Rejection at: ${promise}`, reason instanceof Error ? reason : new Error(String(reason)));
 });
 
 process.on('uncaughtException', (err, origin) => {
-    console.error('Uncaught Exception:', err, 'at:', origin);
-    // Optional: Log to file and then exit safely if critical
-    // process.exit(1);
+    logToFile('ERROR', `Uncaught Exception (origin: ${origin})`, err);
+    // Give time to write logs before potential exit
+    setTimeout(() => {
+        console.error('Critical error - process may need restart');
+    }, 1000);
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+    logToFile('INFO', 'Received SIGINT - shutting down gracefully');
+    client.destroy();
+    process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+    logToFile('INFO', 'Received SIGTERM - shutting down gracefully');
+    client.destroy();
+    process.exit(0);
 });
 
 module.exports = { client }; // Export client for use in other files if needed
