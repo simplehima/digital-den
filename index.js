@@ -268,16 +268,22 @@ app.get('/', (req, res) => {
     res.render('index', { user: req.user });
 });
 
-app.get('/terms', (req, res) => {
-    res.render('terms', { user: req.user });
+// Minimal health check endpoint only (no full dashboard)
+const PORT = process.env.PORT || 8080;
+const express = require('express');
+const healthApp = express();
+
+healthApp.get('/', (req, res) => {
+    res.json({
+        status: 'online',
+        bot: client.user?.tag || 'Not ready',
+        uptime: process.uptime(),
+        guilds: client.guilds.cache.size
+    });
 });
 
-app.get('/privacy', (req, res) => {
-    res.render('privacy', { user: req.user });
-});
-
-app.listen(PORT, () => {
-    console.log(`Web server running on port ${PORT}`);
+healthApp.listen(PORT, () => {
+    console.log(`Health check endpoint on port ${PORT}`);
 });
 
 // --- ERROR HANDLING & PURSUIT OF 24/7 ---

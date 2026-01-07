@@ -15,6 +15,15 @@ module.exports = {
 
     async execute(interaction) {
         try {
+            // GUILD RESTRICTION - Only works in The Digital Den
+            const ALLOWED_GUILD_ID = '1457167466307260568';
+            if (interaction.guildId !== ALLOWED_GUILD_ID) {
+                return await interaction.reply({
+                    content: '🚫 **Music commands are exclusive to The Digital Den server.**\nأوامر الموسيقى حصرية لخادم The Digital Den',
+                    ephemeral: true
+                });
+            }
+
             // Check if user is in a voice channel
             if (!(interaction.member instanceof GuildMember) || !interaction.member.voice.channel) {
                 return await interaction.reply({
