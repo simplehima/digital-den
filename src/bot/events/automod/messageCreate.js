@@ -1,9 +1,13 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const PerspectiveAPI = require('../../utils/PerspectiveAPI');
 
-// Configuration
+// Initialize Perspective API (AI toxicity detection)
+const perspectiveAPI = new PerspectiveAPI(process.env.PERSPECTIVE_API_KEY);
+
+// Configuration - Comprehensive profanity list (English + Arabic/Egyptian)
 const BAD_WORDS = [
-    // Strong profanity
-    'fuck', 'fucking', 'fucker', 'fucked', 'motherfucker',
+    // English profanity
+    'fuck', 'fucking', 'fucker', 'fucked', 'motherfucker', 'mootherfucker',
     'shit', 'shitting', 'shitty', 'bullshit',
     'bitch', 'bitches', 'bitching',
     'ass', 'asses', 'asshole', 'assfuck',
@@ -13,7 +17,20 @@ const BAD_WORDS = [
     'cunt', 'cunts',
 
     // Slurs
-    'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded'
+    'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded',
+
+    // Arabic/Egyptian profanity (various spellings)
+    'kosomak', 'kosomk', 'ksmk', 'kossomak', 'kusumak', 'kosom', 'ksom',
+    'kos', 'koss', 'ko$',
+    'metnak', 'mtnak', 'mitnak', 'metnaka', 'mtnaka',
+    'sharmota', 'sharmouta', 'sharmuta', '$armota', '$armouta',
+    '5awal', 'khawal', '5awl', 'khawl',
+    'a7a', 'a7aa', 'a77a', 'a777a', 'ahha',
+    'zeby', 'zebi', 'zib', 'zebb',
+    'teez', 'tiz', 'tezy', 'teezy', 'tizy',
+    '3ars', '3rs', '3arss',
+    'den omak', 'deen omak', 'din omak', 'omk',
+    'ebn el kalb', 'ebn el wes5a', 'wes5a', 'weskha', 'was5a'
 ];
 
 const ALLOWED_LINKS = ['discord.gg', 'discord.com', 'youtube.com', 'youtu.be', 'github.com', 'reddit.com', 'twitter.com', 'x.com'];
@@ -33,8 +50,9 @@ module.exports = {
         if (message.author.bot) return;
         if (!message.guild) return;
 
-        // Skip if user is admin/moderator
-        if (message.member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
+        // REMOVED ADMIN BYPASS - Now filters everyone including admins
+        // Uncomment this line to skip filtering admins/moderators:
+        // if (message.member.permissions.has(PermissionFlagsBits.ManageMessages)) return;
 
         const userId = message.author.id;
         const content = message.content.toLowerCase();
@@ -44,11 +62,29 @@ module.exports = {
         // 1. Bad Words Filter (HIGHEST PRIORITY)
         for (const word of BAD_WORDS) {
             // Use word boundaries to match whole words
-            const regex = new RegExp(`\\b${word}\\b`, 'i');
+            const regex = new RegExp(`\\b${word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
             if (regex.test(content)) {
                 violation = { type: 'Profanity', detail: `Used prohibited language`, word };
                 action = 'delete';
                 break;
+            }
+        }
+
+        // 1.5 AI-Based Toxicity Detection (if no violation yet)
+        if (!violation && perspectiveAPI.enabled && message.content.length >= 3) {
+            try {
+                const scores = await perspectiveAPI.analyzeText(message.content);
+                if (perspectiveAPI.isToxic(scores, 0.75)) { // 75% threshold
+                    const toxicityType = perspectiveAPI.getTopToxicityType(scores);
+                    violation = {
+                        type: `AI: ${toxicityType}`,
+                        detail: `AI detected: ${Math.round(scores.TOXICITY * 100)}% toxic`,
+                        aiScores: scores
+                    };
+                    action = 'delete';
+                }
+            } catch (error) {
+                console.error('[AUTOMOD] AI check error:', error.message);
             }
         }
 

@@ -1,0 +1,39 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env-dis
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Git
+.git/
+.gitignore
+
+# Bot specific
+bot-status.json
+cookies.txt
+
+# PM2
+.pm2/
+ecosystem.config.js
+
+# Other
+*.md
+!README.md
+.gitkeep
