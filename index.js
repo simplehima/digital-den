@@ -79,19 +79,37 @@ if (fs.existsSync(commandsPath)) {
     }
 }
 
-// Load Events
-const eventsPath = path.join(__dirname, 'src/bot/events');
-if (fs.existsSync(eventsPath)) {
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
-    for (const file of eventFiles) {
-        const filePath = path.join(eventsPath, file);
-        const event = require(filePath);
-        if (event.once) {
-            client.once(event.name, (...args) => event.execute(...args));
-        } else {
-            client.on(event.name, (...args) => event.execute(...args));
+// Load Events (recursively from subdirectories)
+function loadEvents(dir) {
+    const files = fs.readdirSync(dir);
+
+    for (const file of files) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+
+        if (stat.isDirectory()) {
+            // Recursively load events from subdirectories
+            loadEvents(filePath);
+        } else if (file.endsWith('.js')) {
+            // Load event file
+            const event = require(filePath);
+            if (event.name && event.execute) {
+                if (event.once) {
+                    client.once(event.name, (...args) => event.execute(...args));
+                } else {
+                    client.on(event.name, (...args) => event.execute(...args));
+                }
+                console.log(`[EVENT] Loaded: ${event.name} from ${filePath}`);
+            } else {
+                console.log(`[WARNING] Event at ${filePath} is missing "name" or "execute" property.`);
+            }
         }
     }
+}
+
+const eventsPath = path.join(__dirname, 'src/bot/events');
+if (fs.existsSync(eventsPath)) {
+    loadEvents(eventsPath);
 }
 
 // Handle slash command interactions
