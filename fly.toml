@@ -1,0 +1,22 @@
+# Fly.io App Configuration
+app = "hima-discord-bot"  # Change this to your desired app name
+
+primary_region = "iad"  # US East (closest to Discord servers)
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false  # Keep bot always running
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  memory = '256mb'  # Free tier
+  cpu_kind = 'shared'
+  cpus = 1
+
+[env]
+  PORT = "3000"
+  NODE_ENV = "production"
