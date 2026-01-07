@@ -1,11 +1,26 @@
 const { EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 
 // Configuration
-const BAD_WORDS = ['fuck', 'shit', 'bitch', 'asshole', 'nigger', 'faggot', 'retard'];
-const ALLOWED_LINKS = ['discord.gg', 'discord.com', 'youtube.com', 'youtu.be', 'github.com'];
+const BAD_WORDS = [
+    // Strong profanity
+    'fuck', 'fucking', 'fucker', 'fucked', 'motherfucker',
+    'shit', 'shitting', 'shitty', 'bullshit',
+    'bitch', 'bitches', 'bitching',
+    'ass', 'asses', 'asshole', 'assfuck',
+    'dick', 'dickhead', 'dicks',
+    'cock', 'cocks',
+    'pussy', 'pussies',
+    'cunt', 'cunts',
+
+    // Slurs
+    'nigger', 'nigga', 'faggot', 'fag', 'retard', 'retarded'
+];
+
+const ALLOWED_LINKS = ['discord.gg', 'discord.com', 'youtube.com', 'youtu.be', 'github.com', 'reddit.com', 'twitter.com', 'x.com'];
 const SPAM_THRESHOLD = 5;
-const SPAM_WINDOW = 5000;
+const SPAM_WINDOW = 5000; // 5 seconds
 const CAPS_THRESHOLD = 0.7; // 70% caps
+const CAPS_MIN_LENGTH = 10;
 const MENTION_LIMIT = 5;
 
 // Tracking
@@ -14,6 +29,7 @@ const spamMap = new Map();
 module.exports = {
     name: 'messageCreate',
     async execute(message) {
+        // Ignore bots and DMs
         if (message.author.bot) return;
         if (!message.guild) return;
 
@@ -25,11 +41,13 @@ module.exports = {
         let violation = null;
         let action = 'delete';
 
-        // 1. Bad Words Filter
+        // 1. Bad Words Filter (HIGHEST PRIORITY)
         for (const word of BAD_WORDS) {
-            if (content.includes(word)) {
-                violation = { type: 'Bad Word', detail: `Used prohibited word` };
-                action = 'warn';
+            // Use word boundaries to match whole words
+            const regex = new RegExp(`\\b${word}\\b`, 'i');
+            if (regex.test(content)) {
+                violation = { type: 'Profanity', detail: `Used prohibited language`, word };
+                action = 'delete';
                 break;
             }
         }
@@ -50,11 +68,11 @@ module.exports = {
         }
 
         // 3. Anti-Caps
-        if (!violation && content.length > 10) {
+        if (!violation && content.length > CAPS_MIN_LENGTH) {
             const caps = content.replace(/[^A-Z]/g, '').length;
             const ratio = caps / content.length;
             if (ratio > CAPS_THRESHOLD) {
-                violation = { type: 'Excessive Caps', detail: 'Too many capital letters' };
+                violation = { type: 'Excessive Caps', detail: `${Math.round(ratio * 100)}% capital letters` };
                 action = 'delete';
             }
         }
@@ -88,36 +106,76 @@ module.exports = {
         // Handle violation
         if (violation) {
             try {
+                // Delete the message
                 await message.delete();
+                console.log(`[AUTOMOD] Deleted message from ${message.author.tag}: ${violation.type}`);
 
+                // Apply timeout if needed
                 if (action === 'timeout') {
                     await message.member.timeout(5 * 60 * 1000, `AutoMod: ${violation.type}`);
                 }
 
-                // Log to mod-log
+                // Send ephemeral reply in channel
+                const replyMessage = await message.channel.send(
+                    `${message.author} ⚠️ Your message was removed: **${violation.type}**`
+                );
+
+                // Auto-delete reply after 5 seconds
+                setTimeout(() => {
+                    replyMessage.delete().catch(() => { });
+                }, 5000);
+
+                // Log to moderation-logs channel
                 const modLog = message.guild.channels.cache.find(ch => ch.name === 'moderation-logs');
                 if (modLog) {
                     const embed = new EmbedBuilder()
                         .setColor('#E74C3C')
-                        .setTitle(`⚠️ AutoMod: ${violation.type}`)
+                        .setTitle(`🛡️ AutoMod: ${violation.type}`)
+                        .setThumbnail(message.author.displayAvatarURL())
                         .addFields(
-                            { name: 'User', value: `${message.author.tag} (${userId})`, inline: true },
+                            { name: 'User', value: `${message.author.tag}\n<@${userId}>`, inline: true },
                             { name: 'Channel', value: `<#${message.channel.id}>`, inline: true },
-                            { name: 'Action', value: action === 'timeout' ? '5 min timeout' : 'Message deleted', inline: true },
-                            { name: 'Details', value: violation.detail, inline: false }
+                            { name: 'Action', value: action === 'timeout' ? '⏱️ 5 min timeout' : '🗑️ Deleted', inline: true },
+                            { name: 'Reason', value: violation.detail, inline: false }
                         )
+                        .setFooter({ text: `User ID: ${userId}` })
                         .setTimestamp();
+
+                    // Add message content if not too sensitive
+                    if (violation.type !== 'Profanity') {
+                        embed.addFields({ name: 'Content', value: message.content.substring(0, 1000) || '*[No content]*', inline: false });
+                    } else {
+                        embed.addFields({ name: 'Content', value: '*[Profanity detected - content hidden]*', inline: false });
+                    }
 
                     await modLog.send({ embeds: [embed] });
                 }
 
                 // DM user warning
                 try {
-                    await message.author.send(`⚠️ Your message in **${message.guild.name}** was removed.\n**Reason:** ${violation.type}\n**Details:** ${violation.detail}`);
-                } catch { } // Ignore if DMs are closed
+                    const dmEmbed = new EmbedBuilder()
+                        .setColor('#E74C3C')
+                        .setTitle('⚠️ Message Removed')
+                        .setDescription(`Your message in **${message.guild.name}** was automatically removed.`)
+                        .addFields(
+                            { name: 'Reason', value: violation.type, inline: true },
+                            { name: 'Channel', value: `#${message.channel.name}`, inline: true }
+                        )
+                        .setFooter({ text: 'Please follow the server rules.' })
+                        .setTimestamp();
+
+                    if (action === 'timeout') {
+                        dmEmbed.addFields({ name: 'Action', value: '⏱️ You have been timed out for 5 minutes', inline: false });
+                    }
+
+                    await message.author.send({ embeds: [dmEmbed] });
+                } catch (error) {
+                    // Ignore if user has DMs disabled
+                    console.log(`[AUTOMOD] Could not DM ${message.author.tag}`);
+                }
 
             } catch (error) {
-                console.error('AutoMod error:', error);
+                console.error('[AUTOMOD] Error handling violation:', error);
             }
         }
     }
