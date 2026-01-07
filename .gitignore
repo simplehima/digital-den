@@ -13,6 +13,10 @@ logs/
 # Bot status
 bot-status.json
 
+# Cookies (sensitive data)
+cookies.txt
+cookies.json
+
 # PM2
 .pm2/
 

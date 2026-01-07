@@ -1,0 +1,21 @@
+# Netscape HTTP Cookie File
+# This is a generated file! Do not edit.
+# Copy your YouTube cookies here
+
+# How to get cookies:
+# 1. Install browser extension "Get cookies.txt LOCALLY" (recommended)
+#    - Chrome: https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc
+#    - Firefox: https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/
+#
+# 2. Go to https://youtube.com and make sure you're logged in
+#
+# 3. Click the extension icon and download cookies
+#
+# 4. Copy the contents to this file (cookies.txt)
+#
+# Format (do not modify):
+# .youtube.com	TRUE	/	TRUE	0	CONSENT	YES+
+# .youtube.com	TRUE	/	FALSE	1234567890	PREF	tz=America.New_York
+# ...
+
+# Your cookies go below this line:

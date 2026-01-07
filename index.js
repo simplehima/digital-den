@@ -64,19 +64,33 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// Load Commands
-const commandsPath = path.join(__dirname, 'src/bot/commands');
-if (fs.existsSync(commandsPath)) {
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
-    for (const file of commandFiles) {
-        const filePath = path.join(commandsPath, file);
-        const command = require(filePath);
-        if ('data' in command && 'execute' in command) {
-            client.commands.set(command.data.name, command);
-        } else {
-            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+// Load Commands (recursively from subdirectories)
+function loadCommands(dir) {
+    const files = fs.readdirSync(dir);
+
+    for (const file of files) {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+
+        if (stat.isDirectory()) {
+            // Recursively load commands from subdirectories
+            loadCommands(filePath);
+        } else if (file.endsWith('.js')) {
+            // Load command file
+            const command = require(filePath);
+            if ('data' in command && 'execute' in command) {
+                client.commands.set(command.data.name, command);
+                console.log(`[COMMAND] Loaded: ${command.data.name}`);
+            } else {
+                console.log(`[WARNING] Command at ${filePath} is missing "data" or "execute" property.`);
+            }
         }
     }
+}
+
+const commandsPath = path.join(__dirname, 'src/bot/commands');
+if (fs.existsSync(commandsPath)) {
+    loadCommands(commandsPath);
 }
 
 // Load Events (recursively from subdirectories)
