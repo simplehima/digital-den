@@ -25,13 +25,37 @@ class MusicPlayer {
 
         if (fs.existsSync(cookiePath)) {
             try {
-                await play.setToken({
-                    youtube: {
-                        cookie: fs.readFileSync(cookiePath, 'utf-8')
-                    }
-                });
-                this.cookiesLoaded = true;
-                console.log('[MUSIC] YouTube cookies loaded successfully');
+                const cookieFileContent = fs.readFileSync(cookiePath, 'utf-8');
+
+                // Parse Netscape cookies.txt format and convert to cookie string
+                const cookieLines = cookieFileContent.split(/\r?\n/)
+                    .filter(line => line.trim() && !line.startsWith('#'))
+                    .map(line => {
+                        const parts = line.split('\t');
+                        if (parts.length >= 7) {
+                            // Format: domain, flag, path, secure, expiration, name, value
+                            const name = parts[5].trim();
+                            const value = parts[6].trim();
+                            return `${name}=${value}`;
+                        }
+                        return null;
+                    })
+                    .filter(cookie => cookie !== null);
+
+                const cookieString = cookieLines.join('; ');
+
+                if (cookieString) {
+                    await play.setToken({
+                        youtube: {
+                            cookie: cookieString
+                        }
+                    });
+                    this.cookiesLoaded = true;
+                    console.log('[MUSIC] YouTube cookies loaded successfully');
+                    console.log(`[MUSIC] Loaded ${cookieLines.length} cookies`);
+                } else {
+                    console.log('[MUSIC] No valid cookies found in cookies.txt');
+                }
             } catch (error) {
                 console.error('[MUSIC] Failed to load cookies:', error.message);
             }
