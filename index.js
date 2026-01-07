@@ -153,17 +153,13 @@ client.once('ready', async () => {
     try {
         console.log('Started refreshing application (/) commands.');
 
-        // Set Rich Presence
+        // Set Bot Presence
+        // Note: Bots cannot use Rich Presence assets (custom images)
+        // Assets only work for user accounts, not bot accounts
         client.user.setPresence({
             activities: [{
                 name: 'The Digital Den | /help',
-                type: 3, // WATCHING
-                assets: {
-                    large_image: 'logo_large',
-                    large_text: 'Digital Sanctuary',
-                    small_image: 'icon_small',
-                    small_text: 'Status: Active'
-                }
+                type: 3 // WATCHING
             }],
             status: 'online'
         });
