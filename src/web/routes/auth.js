@@ -10,7 +10,7 @@ router.get('/callback', passport.authenticate('discord', {
     res.redirect('/dashboard');
 });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res, next) => {
     req.logout((err) => {
         if (err) return next(err);
         res.redirect('/');

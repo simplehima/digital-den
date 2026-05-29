@@ -1,0 +1,41 @@
+version: "3.8"
+
+services:
+  digital-den-bot:
+    container_name: digital-den-bot
+    image: ghcr.io/simplehima/digital-den:latest
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - CLIENT_ID=${CLIENT_ID}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - SESSION_SECRET=${SESSION_SECRET:-super_secret_session_key}
+      - PORT=3000
+      - GUILD_ID=${GUILD_ID}
+    volumes:
+      - ./logs:/app/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+x-casaos:
+  architectures:
+    - amd64
+    - arm64
+  main: digital-den-bot
+  port_map: "3000"
+  icon: "https://raw.githubusercontent.com/walkxcode/dashboard-icons/main/png/discord.png"
+  title:
+    en_us: "Digital Den Bot"
+  tagline:
+    en_us: "A Discord bot with a web dashboard for The Digital Den."
+  description:
+    en_us: "A powerful Discord management and music bot with an EJS dashboard. Features slash commands, audio playback, rules setup, user/server info, and administrative tools (ban, kick, lock/unlock)."
+  category: "Social"
+  developer: "simplehima"
+  author: "Antigravity AI"
