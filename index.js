@@ -248,25 +248,35 @@ app.use(passport.session());
 passport.serializeUser((user, done) => done(null, user));
 passport.deserializeUser((obj, done) => done(null, obj));
 
-passport.use(new DiscordStrategy({
-    clientID: process.env.CLIENT_ID,
-    clientSecret: process.env.CLIENT_SECRET,
-    callbackURL: process.env.REDIRECT_URI,
-    scope: ['identify', 'guilds']
-}, (accessToken, refreshToken, profile, done) => {
-    process.nextTick(() => done(null, profile));
-}));
+const hasDashboardCreds = process.env.CLIENT_ID && process.env.CLIENT_SECRET && process.env.REDIRECT_URI;
 
-// Routes
-const authRoutes = require('./src/web/routes/auth');
-const dashboardRoutes = require('./src/web/routes/dashboard');
+if (hasDashboardCreds) {
+    passport.use(new DiscordStrategy({
+        clientID: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        callbackURL: process.env.REDIRECT_URI,
+        scope: ['identify', 'guilds']
+    }, (accessToken, refreshToken, profile, done) => {
+        process.nextTick(() => done(null, profile));
+    }));
 
-app.use('/auth', authRoutes);
-app.use('/dashboard', dashboardRoutes);
+    // Routes
+    const authRoutes = require('./src/web/routes/auth');
+    const dashboardRoutes = require('./src/web/routes/dashboard');
 
-app.get('/', (req, res) => {
-    res.render('index', { user: req.user });
-});
+    app.use('/auth', authRoutes);
+    app.use('/dashboard', dashboardRoutes);
+
+    app.get('/', (req, res) => {
+        res.render('index', { user: req.user });
+    });
+} else {
+    console.log('[WARNING] CLIENT_ID, CLIENT_SECRET, or REDIRECT_URI is missing. Web dashboard login is disabled.');
+    
+    app.get('/', (req, res) => {
+        res.send('<h1>Digital Den Bot</h1><p>Web dashboard is disabled because CLIENT_ID or CLIENT_SECRET is not configured.</p>');
+    });
+}
 
 // Add health check endpoint
 app.get('/health', (req, res) => {
@@ -274,7 +284,8 @@ app.get('/health', (req, res) => {
         status: 'online',
         bot: client.user?.tag || 'Not ready',
         uptime: process.uptime(),
-        guilds: client.guilds.cache ? client.guilds.cache.size : 0
+        guilds: client.guilds.cache ? client.guilds.cache.size : 0,
+        dashboardEnabled: !!hasDashboardCreds
     });
 });
 
